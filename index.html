@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Image Editor</title>
+    <title>无语，和你说不下去</title>
     <style>
         body {
             display: flex;
@@ -35,20 +35,28 @@
 <body>
 
     <div class="images">
-        <input type="file" id="upload1" accept="image/*">
-        <input type="file" id="upload2" accept="image/*">
+        <label>选择主体图像: </label>
+        <input type="file" id="upload1" accept="image/*" ><br>
+        <label>选择浮动图像（默认水滴, 可选）: </label>
+        <input type="file" id="upload2" accept="image/*" >
     </div>
-    <textarea id="textInput" placeholder="Enter text..." wrap="off"></textarea>
+    <div class="texts">
+        <label>文本输入: </label>
+        <textarea id="textInput" placeholder="Enter text..." wrap="off">
+无语，和你说不下去，
+典型的 xxx 思维</textarea>
+    </div>
     <div class="controls">
-        <label for="fontSize">Font Size:</label>
+        <label for="fontSize">字体大小:</label>
         <input type="number" id="fontSize" value="16" min="10" max="50">
-        <label for="reservedHeight">Reserved Height:</label>
+        <label for="reservedHeight">文本高度:</label>
         <input type="number" id="reservedHeight" value="100" min="0" max="500">
-        <label for="resizeImage2">Resize Image2:</label>
-        <input type="range" id="resizeImage2" min="0.1" max="2" value="1" step="0.05">
+        <label for="resizeImage2">水滴大小缩放:</label>
+        <input type="range" id="resizeImage2" min="0.01" max="1.2" value="0.5" step="0.01">
+        <label>水滴位置可以拖动</label>
     </div>
     <canvas id="canvas"></canvas>
-    <button id="downloadBtn" disabled>Download Combined Image</button>
+    <button id="downloadBtn" disabled>下载合成图像</button>
 
 
     <script>
@@ -61,19 +69,23 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const downloadBtn = document.getElementById('downloadBtn');
-        let image1, image2, img2Scale = 1;
+        let image1, image2, img2Scale = 0.5;
         let dragging = false;
         let offsetX, offsetY;
         let img2X = 0, img2Y = 0;
 
         function loadImages() {
-            if (upload1.files[0] && upload2.files[0]) {
+            if (upload1.files[0]) {
                 image1 = new Image();
                 image2 = new Image();
                 image1.onload = drawImages;
                 image2.onload = initImage2Position;
                 image1.src = URL.createObjectURL(upload1.files[0]);
-                image2.src = URL.createObjectURL(upload2.files[0]);
+                if (upload2.files[0]) {
+                    image2.src = URL.createObjectURL(upload2.files[0]);
+                } else {
+                    image2.src = new URL("https://em-content.zobj.net/source/google/412/droplet_1f4a7.png")
+                }
             }
         }
 
