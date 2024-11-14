@@ -132,28 +132,47 @@
             });
         }
 
-        canvas.addEventListener('mousedown', (e) => {
-            const mouseX = e.offsetX;
-            const mouseY = e.offsetY;
-            if (mouseX >= img2X && mouseX <= img2X + image2.width * img2Scale &&
-                mouseY >= img2Y && mouseY <= img2Y + image2.height * img2Scale) {
+        canvas.addEventListener('mousedown', startDrag);
+        canvas.addEventListener('touchstart', startDrag);
+        
+        canvas.addEventListener('mouseup', stopDrag);
+        canvas.addEventListener('touchend', stopDrag);
+        
+        canvas.addEventListener('mousemove', drag);
+        canvas.addEventListener('touchmove', drag);
+
+        function getTouchPos(touchEvent) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: touchEvent.touches[0].clientX - rect.left,
+                y: touchEvent.touches[0].clientY - rect.top
+            };
+        }
+
+        function startDrag(e) {
+            const pos = e.touches ? getTouchPos(e) : { x: e.offsetX, y: e.offsetY };
+            if (pos.x >= img2X && pos.x <= img2X + image2.width &&
+                pos.y >= img2Y && pos.y <= img2Y + image2.height) {
                 dragging = true;
-                offsetX = mouseX - img2X;
-                offsetY = mouseY - img2Y;
+                offsetX = pos.x - img2X;
+                offsetY = pos.y - img2Y;
+                e.preventDefault();
             }
-        });
+        }
 
-        canvas.addEventListener('mouseup', () => {
+        function stopDrag() {
             dragging = false;
-        });
+        }
 
-        canvas.addEventListener('mousemove', (e) => {
+        function drag(e) {
             if (dragging) {
-                img2X = e.offsetX - offsetX;
-                img2Y = e.offsetY - offsetY;
+                const pos = e.touches ? getTouchPos(e) : { x: e.offsetX, y: e.offsetY };
+                img2X = pos.x - offsetX;
+                img2Y = pos.y - offsetY;
                 drawImages();
+                e.preventDefault();
             }
-        });
+        }
 
         resizeImage2Input.addEventListener('input', (e) => {
             img2Scale = e.target.value;
