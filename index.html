@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Image Editor</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Noto Sans CJK', sans-serif;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            background-color: white;
+        }
+        button, textarea, input[type="range"] {
+            margin-top: 10px;
+        }
+        textarea {
+            width: 300px;
+            height: 80px;
+            resize: none;
+        }
+        input[type="number"] {
+            width: 60px;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="images">
+        <input type="file" id="upload1" accept="image/*">
+        <input type="file" id="upload2" accept="image/*">
+    </div>
+    <textarea id="textInput" placeholder="Enter text..." wrap="off"></textarea>
+    <div class="controls">
+        <label for="fontSize">Font Size:</label>
+        <input type="number" id="fontSize" value="16" min="10" max="50">
+        <label for="reservedHeight">Reserved Height:</label>
+        <input type="number" id="reservedHeight" value="100" min="0" max="500">
+        <label for="resizeImage2">Resize Image2:</label>
+        <input type="range" id="resizeImage2" min="0.1" max="2" value="1" step="0.05">
+    </div>
+    <canvas id="canvas"></canvas>
+    <button id="downloadBtn" disabled>Download Combined Image</button>
+
+
+    <script>
+        const upload1 = document.getElementById('upload1');
+        const upload2 = document.getElementById('upload2');
+        const textInput = document.getElementById('textInput');
+        const fontSizeInput = document.getElementById('fontSize');
+        const reservedHeightInput = document.getElementById('reservedHeight');
+        const resizeImage2Input = document.getElementById('resizeImage2');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const downloadBtn = document.getElementById('downloadBtn');
+        let image1, image2, img2Scale = 1;
+        let dragging = false;
+        let offsetX, offsetY;
+        let img2X = 0, img2Y = 0;
+
+        function loadImages() {
+            if (upload1.files[0] && upload2.files[0]) {
+                image1 = new Image();
+                image2 = new Image();
+                image1.onload = drawImages;
+                image2.onload = initImage2Position;
+                image1.src = URL.createObjectURL(upload1.files[0]);
+                image2.src = URL.createObjectURL(upload2.files[0]);
+            }
+        }
+
+        function initImage2Position() {
+            img2X = (canvas.width - image2.width * img2Scale) / 2;
+            img2Y = (canvas.height - image2.height * img2Scale) / 2;
+            drawImages();
+        }
+
+        function drawImages() {
+            const viewportHeight = window.innerHeight;
+            const reservedHeight = parseInt(reservedHeightInput.value, 10);
+            const availableHeight = viewportHeight - 200 - reservedHeight; // Reserve space for UI elements
+            const scale = availableHeight / image1.height;
+            const width = image1.width * scale;
+            const height = availableHeight;
+            canvas.width = width;
+            canvas.height = height + reservedHeight + 10; //reserved white space
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image1, 0, 0, width, height);
+            ctx.drawImage(image2, img2X, img2Y, image2.width * img2Scale, image2.height * img2Scale);
+            drawText();
+            downloadBtn.disabled = false;
+        }
+
+        function drawText() {
+            const text = textInput.value;
+            const fontSize = parseInt(fontSizeInput.value, 10);
+            const lineHeight = fontSize + 4;
+            ctx.font = `${fontSize}px 'Noto Sans CJK', sans-serif`;
+            ctx.fillStyle = 'black';
+
+            const lines = text.split('\n');
+            const reservedHeight = parseInt(reservedHeightInput.value, 10);
+            const textHeight = lines.length * lineHeight;
+            const yStart = canvas.height - reservedHeight - 20 + (reservedHeight - textHeight) / 2;
+
+            lines.forEach((line, index) => {
+                const textWidth = ctx.measureText(line).width;
+                const x = (canvas.width - textWidth) / 2;
+                ctx.fillText(line, x, yStart + (index + 1) * lineHeight);
+            });
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const mouseX = e.offsetX;
+            const mouseY = e.offsetY;
+            if (mouseX >= img2X && mouseX <= img2X + image2.width * img2Scale &&
+                mouseY >= img2Y && mouseY <= img2Y + image2.height * img2Scale) {
+                dragging = true;
+                offsetX = mouseX - img2X;
+                offsetY = mouseY - img2Y;
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            dragging = false;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (dragging) {
+                img2X = e.offsetX - offsetX;
+                img2Y = e.offsetY - offsetY;
+                drawImages();
+            }
+        });
+
+        resizeImage2Input.addEventListener('input', (e) => {
+            img2Scale = e.target.value;
+            drawImages();
+        });
+
+        textInput.addEventListener('input', drawImages);
+        fontSizeInput.addEventListener('input', drawImages);
+        reservedHeightInput.addEventListener('input', drawImages);
+        upload1.addEventListener('change', loadImages);
+        upload2.addEventListener('change', loadImages);
+        downloadBtn.addEventListener('click', downloadImage);
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'combined-image.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    </script>
+
+    <!-- Link to NotoSans CJK -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400&display=swap" rel="stylesheet">
+
+</body>
+</html>
