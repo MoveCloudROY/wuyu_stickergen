@@ -78,6 +78,8 @@
             if (upload1.files[0]) {
                 image1 = new Image();
                 image2 = new Image();
+                image1.crossOrigin = 'Anonymous'
+                image2.crossOrigin = 'Anonymous'
                 image1.onload = drawImages;
                 image2.onload = initImage2Position;
                 image1.src = URL.createObjectURL(upload1.files[0]);
