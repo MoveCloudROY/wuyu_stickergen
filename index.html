@@ -86,7 +86,7 @@
                 if (upload2.files[0]) {
                     image2.src = URL.createObjectURL(upload2.files[0]);
                 } else {
-                    image2.src = new URL("https://em-content.zobj.net/source/google/412/droplet_1f4a7.png")
+                    image2.src = "./droplet.png"
                 }
             }
         }
@@ -99,11 +99,13 @@
 
         function drawImages() {
             const viewportHeight = window.innerHeight;
+            const viewportWidth = window.innerWidth;
             const reservedHeight = parseInt(reservedHeightInput.value, 10);
             const availableHeight = viewportHeight - 200 - reservedHeight; // Reserve space for UI elements
-            const scale = availableHeight / image1.height;
+            const availableWidth = viewportWidth - 50; // Reserve space for UI elements
+            const scale = Math.min(availableHeight / image1.height, availableWidth / image1.width);
             const width = image1.width * scale;
-            const height = availableHeight;
+            const height = image1.width * scale;
             canvas.width = width;
             canvas.height = height + reservedHeight + 10; //reserved white space
             ctx.clearRect(0, 0, canvas.width, canvas.height);
