@@ -105,7 +105,7 @@
             const availableWidth = viewportWidth - 50; // Reserve space for UI elements
             const scale = Math.min(availableHeight / image1.height, availableWidth / image1.width);
             const width = image1.width * scale;
-            const height = image1.width * scale;
+            const height = image1.height * scale;
             canvas.width = width;
             canvas.height = height + reservedHeight + 10; //reserved white space
             ctx.clearRect(0, 0, canvas.width, canvas.height);
